@@ -1125,6 +1125,46 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Linearized Model
+
+    On définit les variables d'écart par rapport à l'équilibre $(\theta_e=0, \phi_e=0, f_e=Mg)$. Pour chaque variable $z$, on note l'écart $\Delta z = z - z_e$ (par exemple $\Delta x = x - x_e$ et $\Delta y = y - y_e$).
+
+    Les approximations utilisées pour la linéarisation au premier ordre sont :
+    * $\sin(\alpha) \approx \alpha$
+    * $\cos(\alpha) \approx 1$
+    * Négliger les produits de petits écarts (ex: $\Delta f \cdot \Delta \theta \approx 0$).
+
+    ### 1. Translation horizontale (Axe $x$)
+    * **Équation source :**
+    $$M \ddot{x} = -f \sin(\theta + \phi)$$
+    * **Linéarisation :**
+    $$M \Delta \ddot{x} \approx -(Mg + \Delta f) (\Delta \theta + \Delta \phi) \approx -Mg(\Delta \theta + \Delta \phi)$$
+    $$\implies \Delta \ddot{x} = -g \Delta \theta - g \Delta \phi$$
+
+    ### 2. Translation verticale (Axe $y$)
+    * **Équation source :**
+    $$M \ddot{y} = f \cos(\theta + \phi) - Mg$$
+    * **Linéarisation :**
+    $$M \Delta \ddot{y} \approx (Mg + \Delta f)(1) - Mg = \Delta f$$
+    $$\implies \Delta \ddot{y} = \frac{\Delta f}{M}$$
+
+
+
+    ### 3. Rotation (Axe $\theta$)
+    * **Équation source :**
+    $$J \ddot{\theta} = -f \frac{\ell}{2} \sin \phi$$
+    * **Linéarisation :**
+    En utilisant $\sin \phi \approx \Delta \phi$ et $f \approx Mg$ :
+    $$J \Delta \ddot{\theta} \approx -Mg \frac{\ell}{2} \Delta \phi$$
+    En substituant $J = \frac{1}{12} M\ell^2$ :
+    $$\Delta \ddot{\theta} = -\frac{6g}{\ell} \Delta \phi$$
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
