@@ -1347,6 +1347,18 @@ def _(mo):
     return
 
 
+@app.cell
+def _(g, l, np):
+    A_lat = np.array([[0,1,0,0],[0,0,-g,0],[0,0,0,1],[0,0,0,0.]])
+    B_lat = np.array([[0],[-g],[0],[-3*g/l]])
+    print('A_lat ='); print(A_lat)
+    print('B_lat ='); print(B_lat)
+
+    A_lat
+    B_lat
+    return A_lat, B_lat
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -1357,6 +1369,40 @@ def _(mo):
     - $\phi(t)=0$ at all times.
 
     What do you see? How do you explain it?
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    s0_ff = np.array([0.0, 0.0, np.pi/4, 0.0])
+
+    def lat_rhs(t, s, K=None):
+        phi = 0.0 if K is None else float(-K @ s)
+        return A_lat @ s + B_lat.flatten() * phi
+
+    sol_ff = scipy.integrate.solve_ivp(lat_rhs, [0,20], s0_ff, dense_output=True)
+    t_ff = np.linspace(0,20,1000); s_ff = sol_ff.sol(t_ff)
+
+    fig, axes = plt.subplots(1,2,figsize=(12,4))
+    axes[0].plot(t_ff, s_ff[0]); axes[0].set_title(r'$\Delta x(t)$'); axes[0].grid(True)
+    axes[1].plot(t_ff, s_ff[2], color='orange'); axes[1].set_title(r'$\Delta\theta(t)$'); axes[1].grid(True)
+    plt.tight_layout(); plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Analysons le comportement du modèle linéarisé avec une inclinaison initiale $\theta(0) = \pi/4$ et sans action corrective ($\phi=0$).
+
+    ### 🔓 Solution
+
+    1. **Stagnation de l'angle** : Puisque le moteur n'est pas orienté ($\phi = 0$), aucun couple n'est généré pour redresser le booster. L'accélération angulaire $\Delta \dot{\omega}$ est nulle, et l'inclinaison $\theta$ reste figée à $\pi/4$.
+
+    2. **Dérive latérale** : L'inclinaison constante crée une force latérale persistante dans le modèle linéarisé : $\Delta \dot{v}_x = -g \theta(0)$. Cela se traduit par une accélération constante vers la gauche.
+
+    **Conclusion :** On observe un "glissement" latéral accéléré. Contrairement à un objet inerte, le booster moteur allumé mais incliné sans contrôle s'auto-propulse sur le côté. Cela illustre parfaitement l'instabilité du système : une simple erreur d'angle initiale entraîne une divergence catastrophique de la position.
     """)
     return
 
@@ -1399,6 +1445,95 @@ def _(mo):
 
     Is your final closed-loop model asymptotically stable?
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    L'objectif est de stabiliser l'angle $\theta$ en environ 20 secondes, en ignorant la dérive de la position $x$. La commande prend la forme $\Delta \phi = -K_3 \Delta \theta - K_4 \Delta \dot{\theta}$.
+
+    ### 🔓 Solution
+
+    **1. Équation en boucle fermée**
+    En injectant la loi de commande dans la dynamique de rotation linéarisée $\Delta \ddot{\theta} = -\frac{6g}{\ell} \Delta \phi$, on obtient :
+    $$\Delta \ddot{\theta} - \frac{6g}{\ell} K_4 \Delta \dot{\theta} - \frac{6g}{\ell} K_3 \Delta \theta = 0$$
+    Pour correspondre à un oscillateur harmonique amorti standard $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$, nous devons choisir $K_3 < 0$ et $K_4 < 0$.
+
+    **2. Réglage des paramètres (Itérations)**
+    Sachant que $g=1$ et $\ell=2$, le coefficient devant les gains est $\frac{6g}{\ell} = 3$.
+    Pour un temps d'établissement d'environ $20$ s sans dépassement indésirable (qui risquerait de violer les limites d'angle), on vise un système à l'amortissement critique ($\zeta = 1$).
+    Le temps de réponse à 5% est approché par $t_r \approx 3 / (\zeta \omega_n)$. Pour $t_r = 20$ s, on a $\omega_n = 0.15$ rad/s.
+
+    Par identification :
+    * $-3 K_3 = \omega_n^2 = 0.0225 \implies \mathbf{K_3 = -0.0075}$
+    * $-3 K_4 = 2\zeta\omega_n = 0.3 \implies \mathbf{K_4 = -0.1}$
+
+    La matrice de gain est donc :
+    $$K = \begin{bmatrix} 0 & 0 & -0.0075 & -0.1 \end{bmatrix}$$
+
+
+    **3. Stabilité globale du modèle en boucle fermée**
+    Le modèle complet en boucle fermée **n'est pas asymptotiquement stable**.
+    En effet, la matrice d'état rebouclée $(A_{lat} - B_{lat}K)$ contient deux valeurs propres strictement nulles associées aux états non observés/non contrôlés $\Delta x$ et $\Delta v_x$. Si l'angle est parfaitement ramené à 0, la vitesse horizontale acquise pendant la phase de redressement n'est jamais freinée, ce qui entraîne une dérive infinie de la position $x$.
+    """)
+    return
+
+
+@app.cell
+def _(g, l, np, plt, scipy):
+    def manual_controller_sim():
+        A_lat = np.array([
+            [0, 1, 0, 0],
+            [0, 0, -g, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0]
+        ])
+        B_lat = np.array([
+            [0],
+            [-g],
+            [0],
+            [-6*g/l]
+        ])
+    
+        # Gain matrix we calculated
+        K = np.array([[0, 0, -0.0075, -0.1]])
+        A_cl = A_lat - B_lat @ K
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+        phi_t = -K @ sol.y
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t[0] * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    manual_controller_sim()
     return
 
 
