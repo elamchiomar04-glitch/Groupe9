@@ -1481,22 +1481,9 @@ def _(mo):
 
 
 @app.cell
-def _(g, l, np, plt, scipy):
+def _(A_lat, B_lat, np, plt, scipy):
     def manual_controller_sim():
-        A_lat = np.array([
-            [0, 1, 0, 0],
-            [0, 0, -g, 0],
-            [0, 0, 0, 1],
-            [0, 0, 0, 0]
-        ])
-        B_lat = np.array([
-            [0],
-            [-g],
-            [0],
-            [-6*g/l]
-        ])
     
-        # Gain matrix we calculated
         K = np.array([[0, 0, -0.0075, -0.1]])
         A_cl = A_lat - B_lat @ K
 
@@ -1579,12 +1566,221 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Pour ramener la position $x(t)$ à $0$ tout en stabilisant l'angle, nous devons utiliser un retour d'état complet :
+    $$\Delta \phi = -K_{pp} \Delta s_{lat}$$
+
+    ### 🔓 Solution
+
+    **1. Stratégie de placement**
+    Le système étant commandable, on peut imposer la dynamique en boucle fermée en choisissant les 4 valeurs propres de la matrice $(A_{lat} - B_{lat}K_{pp})$.
+    Pour un temps de réponse de $20$ secondes, la dynamique dominante doit se situer autour de $-3/20 = -0.15$.
+    Pour éviter un comportement oscillatoire et des commandes trop brusques qui violeraient la limite $|\phi| < \pi/2$, nous choisissons 4 pôles réels espacés :
+    $$P = [-0.15, -0.20, -0.25, -0.30]$$
+
+    **2. Calcul de la matrice $K_{pp}$**
+    Nous utilisons la fonction `scipy.signal.place_poles` pour calculer les gains correspondants sans avoir à développer la formule d'Ackermann manuellement.
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    # Choix des pôles pour un temps de réponse doux (~20s)
+    poles = [-0.15, -0.20, -0.25, -0.30]
+
+    # Calcul de K_pp
+    res = scipy.signal.place_poles(A_lat, B_lat, poles)
+    K_pp = res.gain_matrix
+
+    A_cl = A_lat - B_lat @ K_pp
+
+    def cl_dynamics(t, s):
+        return A_cl @ s
+
+    t_span = [0.0, 30.0]
+    s0 = [0.0, 0.0, np.pi/4, 0.0]
+    t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+    sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    phi_t = -(K_pp @ sol.y)[0]
+
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1, 3, 1)
+    plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+    plt.title(r"Tilt $\theta(t)$ (deg)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.subplot(1, 3, 2)
+    plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+    plt.title(r"Command $\phi(t)$ (deg)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.subplot(1, 3, 3)
+    plt.plot(sol.t, sol.y[0], color="green")
+    plt.title(r"Position $x(t)$ (m)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # On retourne la figure et la matrice calculée pour vérification
+    print("K_pp calculé :", K_pp)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    def pole_placement_sim():
+    
+        # Matrice K_pp calculée précédemment réinjectée en dur
+        K_pp = np.array([[0.00075, 0.01425, -0.09941667, -0.30475]])
+    
+        A_cl = A_lat - B_lat @ K_pp
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    
+        # phi(t) = -K * s(t)
+        phi_t = -(K_pp @ sol.y)[0]
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    pole_placement_sim()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Controller Tuned with Optimal Control
 
     Using optimal control, find a gain matrix $K_{oc}$ that satisfies the same set of requirements that the one defined using pole placement.
 
     Explain how you find the proper design parameters!
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Pour trouver un compromis mathématiquement parfait entre la rapidité de la correction et l'économie d'effort (minimisation de l'angle de braquage), nous utilisons un régulateur linéaire quadratique (LQR).
+
+    ### 🔓 Solution
+
+    **1. Stratégie du Contrôle Optimal (LQR)**
+    La méthode LQR calcule la matrice de gain $K_{oc}$ qui minimise la fonction de coût (énergie totale) suivante :
+    $$J = \int_{0}^{\infty} (\Delta s_{lat}^\top Q \Delta s_{lat} + \Delta u^\top R \Delta u) dt$$
+
+    * **La matrice $Q$** pénalise l'erreur sur l'état. Pour forcer le booster à revenir à $x=0$ tout en gardant l'inclinaison $\theta$ très petite pour éviter de basculer, on pénalise ces états : $Q = \text{diag}(1, 1, 10, 1)$.
+    * **La matrice $R$** pénalise l'effort de commande (l'angle $\phi$). Pour respecter les limites physiques et éviter de saturer le moteur, on fixe un coût élevé : $R = [100]$.
+
+    **2. Calcul du gain $K_{oc}$**
+    La résolution de l'équation algébrique de Riccati (ARE) associée à ces matrices $Q$ et $R$ nous donne le gain optimal.
+    $$K_{oc} = \begin{bmatrix} 0.1000 & 0.4260 & -0.8573 & -0.8906 \end{bmatrix}$$
+
+    **3. Analyse du comportement**
+    Le contrôleur LQR garantit la stabilité asymptotique. La trajectoire générée sera plus fluide et "naturelle" que celle du placement de pôles, car elle minimise les pics de commande tout en assurant l'arrivée à la cible.
+    """)
+    return
+
+
+@app.cell
+def _(g, l, np, plt, scipy):
+    def optimal_control_sim():
+        A_lat = np.array([
+            [0, 1, 0, 0],
+            [0, 0, -g, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0]
+        ])
+        B_lat = np.array([
+            [0],
+            [-g],
+            [0],
+            [-6*g/l]
+        ])
+    
+        # Matrice K_oc calculée via LQR (Q=diag(1,1,10,1), R=100) réinjectée en dur
+        K_oc = np.array([[0.1, 0.42597627, -0.85727891, -0.89059623]])
+    
+        A_cl = A_lat - B_lat @ K_oc
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    
+        # phi(t) = -K * s(t)
+        phi_t = -(K_oc @ sol.y)[0]
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    optimal_control_sim()
     return
 
 
