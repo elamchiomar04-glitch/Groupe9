@@ -1254,6 +1254,26 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    L'analyse de la stabilité locale du système s'effectue en calculant les valeurs propres de la matrice d'état $A$.
+
+    ### 🔓 Solution
+
+    La matrice $A$ est une matrice triangulaire supérieure par blocs dont tous les éléments diagonaux sont nuls. Son polynôme caractéristique est donc :
+    $$P(s) = \det(sI - A) = s^6$$
+
+    Le système possède une unique valeur propre **$\lambda = 0$ de multiplicité 6**.
+
+    1.  **Stabilité asymptotique** : Un système est asymptotiquement stable si et seulement si toutes ses valeurs propres ont une partie réelle strictement négative ($\text{Re}(\lambda) < 0$). Ce n'est clairement pas le cas ici.
+    2.  **Stabilité au sens de Lyapunov** : Pour que le système soit stable, les valeurs propres sur l'axe imaginaire (ici $0$) devraient être associées à des blocs de Jordan de taille 1. Or, notre matrice $A$ contient des structures d'intégrateurs doubles (pour $x, y$ et $\theta$), ce qui entraîne une croissance polynomiale de l'erreur en cas de perturbation.
+
+    **Conclusion :** L'équilibre générique est **instable**. Sans intervention du système de contrôle pour modifier la poussée et l'angle du moteur, le booster ne peut pas maintenir sa position ou sa verticalité.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Controllability
 
     Is the linearized model controllable?
