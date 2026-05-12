@@ -1084,12 +1084,12 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Equilibria
 
-    Un état d'équilibre est défini par l'annulation des accélérations : $\ddot{x} = 0, \ddot{y} = 0, \ddot{\theta} = 0$.
+    Un état d'équilibre est défini par l'annulation des accélérations et des vitesses : $\ddot{x} = 0, \ddot{y} = 0, \ddot{\theta} = 0$ et $v_x = v_y = \omega = 0$.
 
     ### 1. Condition de rotation
     D'après l'équation du moment cinétique :
@@ -1109,7 +1109,7 @@ def _(mo):
     Avec $\theta_e = 0$ et $\phi_e = 0$, l'équilibre $\ddot{y} = 0$ impose $f - Mg = 0$, soit :
     $$\mathbf{f_e = Mg}$$
 
-    **Conclusion :** L'unique point d'équilibre (vol stationnaire) est atteint pour un booster vertical ($\theta=0$), une poussée alignée ($\phi=0$) et une intensité compensant exactement le poids ($f=Mg$).
+    **Conclusion :** Il existe une infinité de points d'équilibre (vol stationnaire). Tout état respectant la verticalité ($\theta=0$), une poussée alignée ($\phi=0$) et une intensité compensant le poids ($f=Mg$) est un équilibre, quelle que soit la position $(x, y)$ du booster dans l'espace.
     """)
     return
 
@@ -1173,6 +1173,71 @@ def _(mo):
     1. What are the matrices $A$ and $B$ associated to this linear model in standard form?
     2. Define the corresponding NumPy arrays `A` and `B`.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution (Question 1)
+
+    Le système linéarisé au voisinage de l'équilibre s'écrit sous la forme d'état standard $\Delta \dot{s} = A \Delta s + B \Delta u$.
+
+    Le vecteur d'état est $\Delta s = (\Delta x, \Delta v_x, \Delta y, \Delta v_y, \Delta \theta, \Delta \omega)^\top \in \mathbb{R}^6$ et le vecteur d'entrée est $\Delta u = (\Delta f, \Delta \phi)^\top \in \mathbb{R}^2$.
+
+    D'après les équations du mouvement linéarisées :
+    * $\Delta \dot{x} = \Delta v_x$
+    * $\Delta \dot{v}_x = -g \Delta \theta - g \Delta \phi$
+    * $\Delta \dot{y} = \Delta v_y$
+    * $\Delta \dot{v}_y = \frac{1}{M} \Delta f$
+    * $\Delta \dot{\theta} = \Delta \omega$
+    * $\Delta \dot{\omega} = - \frac{6g}{\ell} \Delta \phi$
+
+    On en déduit les matrices $A$ et $B$ suivantes :
+
+    $$
+    A = \begin{bmatrix}
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{bmatrix}, \quad
+    B = \begin{bmatrix}
+    0 & 0 \\
+    0 & -g \\
+    0 & 0 \\
+    1/M & 0 \\
+    0 & 0 \\
+    0 & -6g/\ell
+    \end{bmatrix}
+    $$
+    """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    A = np.array([
+        [0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, -g, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0]
+    ])
+
+    B = np.array([
+        [0, 0],
+        [0, -g],
+        [0, 0],
+        [1/M, 0],
+        [0, 0],
+        [0, -6*g/l]
+    ])
+
+    A,B
     return
 
 
