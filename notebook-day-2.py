@@ -1087,6 +1087,36 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## 🧩 Equilibria
+
+    Un état d'équilibre est défini par l'annulation des accélérations : $\ddot{x} = 0, \ddot{y} = 0, \ddot{\theta} = 0$.
+
+    ### 1. Condition de rotation
+    D'après l'équation du moment cinétique :
+    $$J \ddot{\theta} = - f (\ell/2) \sin \phi$$
+    L'équilibre $\ddot{\theta} = 0$ avec $f > 0$ impose $\sin \phi = 0$. Pour $|\phi| < \pi/2$, on obtient :
+    $$\mathbf{\phi_e = 0}$$
+
+    ### 2. Condition de translation horizontale
+    D'après le PFD sur l'axe $x$ :
+    $$M \ddot{x} = -f \sin (\theta + \phi)$$
+    Avec $\phi_e = 0$, l'équilibre $\ddot{x} = 0$ impose $\sin \theta = 0$. Pour $|\theta| < \pi/2$, on obtient :
+    $$\mathbf{\theta_e = 0}$$
+
+    ### 3. Condition de translation verticale
+    D'après le PFD sur l'axe $y$ :
+    $$M \ddot{y} = f \cos(\theta + \phi) - Mg$$
+    Avec $\theta_e = 0$ et $\phi_e = 0$, l'équilibre $\ddot{y} = 0$ impose $f - Mg = 0$, soit :
+    $$\mathbf{f_e = Mg}$$
+
+    **Conclusion :** L'unique point d'équilibre (vol stationnaire) est atteint pour un booster vertical ($\theta=0$), une poussée alignée ($\phi=0$) et une intensité compensant exactement le poids ($f=Mg$).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Linearized Model
 
     Introduce the error variables $\Delta x$, $\Delta y$, $\Delta \theta$, and $\Delta f$ and $\Delta \phi$ of the state and input values with respect to the generic equilibrium configuration.
