@@ -1284,6 +1284,30 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Pour déterminer si le modèle linéarisé est commandable, on étudie le rang de la matrice de commandabilité de Kalman $\mathcal{C}$ :
+    $$\mathcal{C} = [B, AB, A^2B, A^3B, A^4B, A^5B]$$
+
+    ### 🔓 Solution
+
+    L'analyse peut être simplifiée en observant le découplage du système en deux sous-systèmes indépendants :
+
+    1. **Sous-système vertical ($\Delta y, \Delta v_y$)** : Piloté uniquement par $\Delta f$. La matrice de commandabilité réduite est de rang 2. L'altitude est donc commandable.
+    2. **Sous-système latéral et angulaire ($\Delta x, \Delta v_x, \Delta \theta, \Delta \omega$)** : Piloté par l'unique commande $\Delta \phi$. La matrice de commandabilité associée est :
+       $\mathcal{C}_{lat} = \begin{bmatrix} 0 & -g & 0 & 6g^2/\ell \\ -g & 0 & 6g^2/\ell & 0 \\ 0 & -6g/\ell & 0 & 0 \\ -6g/\ell & 0 & 0 & 0 \end{bmatrix}$
+       Cette matrice est de rang plein (rang 4), car son déterminant est non nul pour $g, \ell > 0$.
+
+    **Conclusion :** La matrice de commandabilité totale du système est de **rang 6** (rang plein). Le modèle linéarisé est donc **entièrement commandable**.
+
+
+
+    Cela signifie qu'il est théoriquement possible de concevoir une loi de commande permettant de stabiliser le booster et de le ramener à son point d'équilibre, malgré son instabilité naturelle.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Lateral Dynamics
 
     We limit our interest in the lateral position $x$, the tilt $\theta$ and their derivatives (we are for the moment fine with letting $y$ and $\dot{y}$ be uncontrolled). We also set $f = M g$ and control the system only with $\phi$.
@@ -1291,6 +1315,34 @@ def _(mo):
     - What are the new (reduced) matrices $A$ and $B$ for this reduced system?
 
     - Check the controllability of this new system.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On réduit le système à l'étude de la position latérale $x$ et de l'angle $\theta$, en fixant $f = Mg$. Le vecteur d'état devient $\Delta s_{lat} = (\Delta x, \Delta v_x, \Delta \theta, \Delta \omega)^\top$ et la commande est $\Delta \phi$.
+
+    ### Matrices du système réduit
+    D'après les équations linéarisées précédentes :
+    $$
+    A_{lat} = \begin{bmatrix}
+    0 & 1 & 0 & 0 \\
+    0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0
+    \end{bmatrix}, \quad
+    B_{lat} = \begin{bmatrix}
+    0 \\
+    -g \\
+    0 \\
+    -6g/\ell
+    \end{bmatrix}
+    $$
+
+    ### Analyse de commandabilité
+    La matrice de Kalman $\mathcal{C}_{lat} = [B, AB, A^2B, A^3B]$ est de rang 4. Le système latéral est donc **entièrement commandable**, ce qui signifie qu'on peut stabiliser à la fois la position $x$ et l'angle $\theta$ en utilisant uniquement l'orientation du moteur $\phi$.
     """)
     return
 
