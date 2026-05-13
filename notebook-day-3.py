@@ -2364,7 +2364,7 @@ def _(mo):
     +\; \Psi(\theta,\dot{\theta},z,\dot{z})
     $$
 
-    where $\Psi$ collects all state-dependent terms (independent of $v$).
+    where $\Psi$ collects all state-dependent terms (independent ! of $v$).
     """)
     return
 
