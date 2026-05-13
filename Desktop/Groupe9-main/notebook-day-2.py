@@ -1,0 +1,1798 @@
+import marimo
+
+__generated_with = "0.20.4"
+app = marimo.App()
+
+
+@app.cell
+def _():
+    import marimo as mo
+
+    return (mo,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    # Redstart: A Lightweight Reusable Booster
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.image(src="public/images/redstart.png")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Project Redstart is an attempt to design the control systems of a reusable booster during landing.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    In principle, it is similar to SpaceX's Falcon Heavy Booster.
+
+    >The Falcon Heavy booster is the first stage of SpaceX's powerful Falcon Heavy rocket, which consists of three modified Falcon 9 boosters strapped together. These boosters provide the massive thrust needed to lift heavy payloads—like satellites or spacecraft—into orbit. After launch, the two side boosters separate and land back on Earth for reuse, while the center booster either lands on a droneship or is discarded in high-energy missions.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.center(
+        mo.Html("""
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/RYUr-5PYA7s?si=EXPnjNVnqmJSsIjc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>""")
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Dependencies
+    """)
+    return
+
+
+@app.cell
+def _():
+    import scipy
+    import scipy.integrate as sci
+
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    import numpy as np
+    import numpy.linalg as la
+
+    return np, plt, scipy
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The Model
+
+    The Redstart booster in model as a rigid tube of length $\ell$ and negligible diameter whose mass $M$ is uniformly spread along its length. It may be located in 2D space by the coordinates $(x, y)$ of its center of mass and the angle $\theta$ it makes with respect to the vertical (with the convention that $\theta > 0$ for a left tilt, i.e. the angle is measured counterclockwise)
+
+    This booster has an orientable reactor at its base ; the force that it generates is of amplitude $f \geq 0$ and the angle of the force with respect to the booster axis is $\phi$ (with a counterclockwise convention).
+
+    We assume that the booster is subject to gravity, the reactor force and that the friction of the air is negligible.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.center(mo.image(src="public/images/geometry.svg"))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Constants
+
+    For the sake of simplicity (this is merely a toy model!) in the sequel we assume that:
+
+    - the total length $\ell$ of the booster is 2 meters,
+    - its mass $M$ is 1 kg,
+    - the gravity constant $g$ is 1 m/s^2.
+
+    This set of values is completely unrealistic, but very simple! It will simplify our computations and will not fundamentally impact the structure of the booster dynamics.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Getting Started
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Constants
+
+    Define the Python constants `g`, `M` and `l` that correspond to the gravity constant, the mass and length of the booster.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    g = 1.0
+    M = 1.0
+    l = 2
+    return M, g, l
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Forces
+
+    Compute the cartesian coordinates $f_x$ and $f_y$ of the force applied to the booster by the reactor, as functions of $f$, $\theta$ and $\phi$.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Given the geometric setting, the cartesian coordinates of the unit vector $\vec{u}=(u_x, u_y)$ aligned with the reactor (or flame) axis and pointing from the reactor towards the flame satisfy:
+
+    \begin{align*}
+    u_x & = +\sin (\theta + \phi) \\
+    u_y & = -\cos(\theta +\phi)
+    \end{align*}
+
+    Assuming that $f \geq 0$, the force applied to the booster is in the opposite direction and has amplitude $f$:
+
+    $$
+    \vec{f} = -f \vec{u}
+    $$
+
+    Therefore,
+
+    \begin{align*}
+    f_x & = -f \sin (\theta + \phi) \\
+    f_y & = +f \cos(\theta +\phi)
+    \end{align*}
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Center of Mass
+
+    Give the ordinary differential equation that governs the evolution of the position $(x, y)$ of the center of mass of the booster.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    The force exerted by the gravity on the booster is
+
+    $$
+    \vec{f}_g =
+    \begin{bmatrix}
+    0 \\ - M g
+    \end{bmatrix}
+    $$
+
+    By Newton's second law of motion, the acceleration $\vec{a} = (\ddot{x}, \ddot{y})$
+    satisfies $M \vec{a} = \vec{f} + \vec{f}_g$ and thus
+
+    \begin{align*}
+    M \ddot{x} & = -f \sin (\theta + \phi) \\
+    M \ddot{y} & = +f \cos(\theta +\phi) - Mg
+    \end{align*}
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Moment of inertia
+
+    Compute the [moment of inertia](https://en.wikipedia.org/wiki/Moment_of_inertia) $J$ of the booster and define the corresponding Python variable `J`.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution
+
+    The moment of inertia of a thin rod with uniformly distributed mass about its center is of mass is
+
+    $$
+    J = \frac{1}{12} M \ell^2
+    $$
+    """)
+    return
+
+
+@app.cell
+def _(M, l):
+    J = M * l ** 2 / 12
+    J
+    return (J,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Tilt
+
+    Give the ordinary differential equation that governs the evolution of the tilt angle $\theta$.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution
+
+    Newton's Second Law for Rotation is $J \ddot{\theta} = \tau$ where $\tau$ is the torque applied to the booster. Here the torque applied by the gravity to the booster is $0$ by symmetry and only the booster reactor induces a torque. The torque can be
+    first computed as a vector in 3D as the cross-product of the vector between the center of the booster and the reactor location and the force applied by the reactor.
+    Afterwards, we can be project it on the 3rd axis to get $\tau$.
+
+    Thus, we have
+
+    $$
+    \tau =
+    \left(
+    \ell / 2
+    \begin{bmatrix}
+    {} +\sin \theta \\ - \cos \theta \\ 0
+    \end{bmatrix}
+    \wedge \begin{bmatrix} -f \sin (\theta + \phi) \\ +f \cos (\theta + \phi) \\ 0
+    \end{bmatrix}
+    \right)
+    \cdot \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}
+    =
+    \ell/2 (f\sin \theta \cos (\theta + \phi) - f\sin (\theta + \phi) \cos \theta).
+    $$
+
+    Since $\sin \alpha \cos \beta - \sin \beta \cos \alpha = \sin (\alpha - \beta)$,
+    we obtain
+
+    $$
+    \tau = - f (\ell/2) \sin \phi,
+    $$
+
+    thus the angular acceleration is governed by
+
+    $$
+    J \ddot{\theta} = - f (\ell / 2)  \sin \phi.
+    $$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Vector Field
+
+    Denote
+
+    - $v_x =\dot{x}$, $v_y = \dot{y}$ the components of the booster center of mass velocity,
+    - $\omega = \dot{\theta}$ the angular velocity of the booster.
+
+
+    What is is dimension $n$ of the state space?
+    What is the state $s \in \R^n$ of the booster dynamics?
+    Provide the definition of the function $F : \mathbb{R}^{n + 2} \to \mathbb{R}^n$ such that the system evolves
+    according to
+
+    $$
+    \dot{s} = F(s, f, \phi).
+    $$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution
+
+    Given that
+
+    \begin{align*}
+    M \ddot{x} & = -f \sin (\theta + \phi) \\
+    M \ddot{y} & = +f \cos(\theta +\phi) - Mg \\
+    J \ddot{\theta} & = - f (\ell/2) \sin \phi
+    \end{align*}
+
+    and $\dot{x} = v_x$, $\dot{y} = v_y$ and $\dot{\theta} = \omega$, we
+    can use as a state vector $s = (x, v_x, y, v_y, \theta, \omega) \in \mathbb{R}^6$
+    and the corresponding function $F$ is given by
+
+    $$
+    F(s, f, \phi) = \begin{bmatrix}
+    v_x \\ -(f / M) \sin (\theta + \phi) \\
+    v_y \\ +(f / M) \cos(\theta +\phi) - g \\
+    \omega \\ - (f / J) (\ell/2) \sin \phi
+    \end{bmatrix}
+    $$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Simulation
+
+    Define a function `redstart_solve` that, given the input parameters:
+
+    - `t_span`: a pair of initial time `t_0` and final time `t_f`,
+    - `y0`: the value of `[x, vx, y, vy, theta, omega]` at `t_0`,
+    - `f_phi`: a function that given the current time `t` and current state value `y`
+         returns the values of the inputs `f` and `phi` in an array.
+
+    returns:
+
+    - `sol`: a function that given a time `t` returns the value of `[x, vx, y, vy, theta, omega]` at time `t` (and that also accepts 1d-arrays of times for multiple state evaluations).
+
+    A typical usage would be:
+
+    ```python
+    def free_fall_example():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] # [x, vx, y, vy, theta, omega]
+        def f_phi(t, y):
+            return np.array([0.0, 0.0]) # [f, phi]
+        sol = redstart_solve(t_span, y0, f_phi)
+        t = np.linspace(t_span[0], t_span[1], 1000)
+        y_t = sol(t)[2]
+        plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
+        plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+        plt.title("Free Fall")
+        plt.xlabel("time $t$")
+        plt.grid(True)
+        plt.legend()
+        return plt.gcf()
+    free_fall_example()
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(J, M, g, l, np, scipy):
+    def redstart_solve(t_span, y0, f_phi):
+        def fun(t, state):
+            x, vx, y, vy, theta, omega = state
+            f, phi = f_phi(t, state)
+            d2x = (-f * np.sin(theta + phi)) / M
+            d2y = (+ f * np.cos(theta + phi)) / M - g
+            d2theta = - (f / J) * (l / 2) * np.sin(phi)
+            return np.array([vx, d2x, vy, d2y, omega, d2theta])
+        r = scipy.integrate.solve_ivp(fun, t_span, y0, dense_output=True)
+        return r.sol
+
+    return (redstart_solve,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Freefall test
+
+
+    In the `free_fall` example scenario. scenario, at what moment should the center of mass of the booster theoretically cross the
+    height of $y = \ell$?
+
+    Check your `redstart_solve` function in this scenario and produce a graph that allows us to check the above answer numerically/visually.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution
+
+    In the free fall scenario, the solution satisfies $x(t)=0$, $y(t) = y(0) - g/2 t^2$ and $\theta(t) = 0$. Since numerically $y(0)=10.0$, $g=1$ and $\ell=2$, the threshold
+    is crossed when $10 - 1/2 t^2 = 2$, that is $t=4$.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(l, np, plt, redstart_solve):
+    def free_fall_example():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] # [x, vx, y, vy, theta, omega]
+        def f_phi(t, y):
+            return np.array([0.0, 0.0]) # [f, phi]
+        sol = redstart_solve(t_span, y0, f_phi)
+        t = np.linspace(t_span[0], t_span[1], 1000)
+        y_t = sol(t)[2]
+        plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
+        plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+        plt.title("Free Fall")
+        plt.xlabel("time $t$")
+        plt.grid(True)
+        plt.legend()
+        return plt.gcf()
+    free_fall_example()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Controlled Landing
+
+    Assume that $x$, $\dot{x}$, $\theta$ and $\dot{\theta}$ are null at $t=0$ and that $y(0)= 10$ and $\dot{y}(0) = - 2$.
+
+    Find a time-varying force $f(t)$ which, when applied in the booster axis ($\theta=0$), yields $y(5)=\ell / 2 = 1$ (the booster is at ground level) and $\dot{y}(5)=0$ (the booster is at rest).
+
+    Simulate the corresponding scenario, display graphically the results and check that your solution works as expected.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    We can search for a cubic polynomial
+
+    $$
+    y(t) = a_3 t^3 + a_2 t^2 + a_1 t + a_0
+    $$
+
+    that solves the four given constraints,
+    then deduce $f(t)$ from the equation $M \ddot{y} = f + Mg$.
+
+    The time derivative of $y$ satisfies
+    $$
+    \dot{y}(t) = 3 a_3 t^2 + 2 a_2 t + a_1,
+    $$
+    thus the constraints are:
+
+    \begin{align*}
+    y(0) = a_0 &= 10, \\
+    \dot{y}(0) = a_1 &= -2,\\
+    y(5) = 125 a_3 + 25 a_2 + 5 a_1 + a_0 &= 1, \\
+    \dot{y}(5) = 75 a_3 + 10 a_2 + a_1 &= 0. \\
+    \end{align*}
+
+    The solution of this linear system provides:
+
+    $$
+    y(t)
+    =\frac{8}{125}t^3 - \frac{7}{25} t^2 - 2t + 10,
+    $$
+    which yields
+    $$
+    \ddot{y}(t)
+    =
+    \frac{48}{125}t - \frac{14}{25}
+    $$
+    and therefore since $M=1$ and $g=1$,
+    $$
+    f(t) = \frac{\ddot{y}(t)}{M} + g = \frac{48}{125}t + \frac{11}{25}.
+    $$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(l, np, plt, redstart_solve):
+    def controlled_landing_example():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
+        def f_phi_smooth_landing(t, state):
+            return np.array([48 / 125 * t + 11 / 25, 0])
+        sol = redstart_solve(t_span, y0, f_phi=f_phi_smooth_landing)
+        t = np.linspace(t_span[0], t_span[1], 1000)
+        y_t = sol(t)[2]
+        plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
+        plt.plot(t, (l / 2) * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell/2$")
+        plt.title("Controlled Landing")
+        plt.xlabel("time $t$")
+        plt.grid(True)
+        plt.legend()
+        return plt.gcf()
+    controlled_landing_example()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Animations
+
+    It's very handy to visualize the evolution of our booster "as a movie"!
+
+    Have a look at the [animations tutorial] to understand the basics of animated SVG documents.
+
+    [animations tutorial]: http://localhost:2718/?file=animations.py
+    """)
+    return
+
+
+@app.cell
+def _():
+    from svg import svg, transform, animate_transform
+
+    return animate_transform, svg, transform
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Environment
+
+    Create a function `world` whose arguments are:
+
+    - `view_box`: a view box in cartesian coordinates `[x_min, x_max, y_min, y_max]`,
+
+    - `*objects`: (optional) list of extra svg elements (default : `[]`).
+
+    and that returns a SVG string which
+
+    - has the appropriate cartesian view box and frame ($y$-axis upwards),
+
+    - depicts the sky and the ground,
+
+    - depicts a 2 meter wide green ground target centered on $(0, 0)$,
+
+    - displays the objects (if any) inserted on top of the world.
+
+    Test your function with the following scenes:
+
+    ```python
+    mo.hstack(
+        [
+            # Display an empty world
+            mo.Html(
+                world([-3, 3, -2, 4])
+            ),
+            # Display a world with a black square on top of the landing pad
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    svg.rect(x=-1, y=0, width=2, height=2, fill="black"),
+                )
+            ),
+            # Display a world with a red square in the top-left corner of the view box
+            # and a blue square on the top-right corner of the view box.
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    svg.rect(x=-3, y=2, width=2, height=2, fill="red"),
+                    svg.rect(x=1, y=2, width=2, height=2, fill="blue"),
+                )
+            )
+        ],
+        justify="space-around"
+    )
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell
+def _(svg, transform):
+    def world(view_box, *objects):
+        x_min, x_max, y_min, y_max = view_box    
+        width, height = x_max - x_min, y_max - y_min
+
+        return svg.svg(
+          xmlns="http://www.w3.org/2000/svg",
+          viewBox=f"0 0 {width} {height}",
+          style="max-height:80vh")(
+              transform.translate(x=-x_min, y=y_max)(
+                  transform.scale(y=-1.0)(
+                      # Sky
+                      svg.rect(x=-1e3, y=0, width=2e3, height=1e3, fill="lightskyblue"),
+                      # Ground
+                      svg.rect(x=-1e3, y=-2e3, width=2e3, height=2e3, fill="sandybrown"),
+                      # Target 
+                      svg.rect(x=-1, y =-1, width=2, height=1, fill="lightgreen"),
+                      *objects,
+                )
+            )
+        )
+
+    return (world,)
+
+
+@app.cell
+def _(mo, svg, world):
+    mo.hstack(
+        [
+            # Display an empty world
+            mo.Html(
+                world([-3, 3, -2, 4])
+            ),
+            # Display a world with a black square on top of the landing pad
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4], 
+                    svg.rect(x=-1, y=0, width=2, height=2, fill="black"),
+                )    
+            ),
+            # Display a world with a red square in the top-left corner of the view box
+            # and a blue square on the top-right corner of the view box.
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    svg.rect(x=-3, y=2, width=2, height=2, fill="red"),
+                    svg.rect(x=1, y=2, width=2, height=2, fill="blue"),                
+                )
+            )
+        ],
+        justify="space-around"
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Booster Drawing
+
+    Create a `booster` function that:
+
+    - takes the numeric arguments `x`, `y`, `theta` (in radians), `f` and `phi` (in radians)
+
+    and returns
+
+    - a SVG fragment that represents the body of the booster and the flame of its reactor.
+    (The booster drawing can be very simple, for example a rectangle for the body and another one of a different color for the flame will be fine.)
+
+    **Constraint:** make sure that
+
+    - the orientation of the flame is correct,
+    - its length is proportional to the force $f$,
+    - the flame length is equal to $\ell/2$ when $f=Mg$.
+
+
+    Test you function in the following scenarios:
+
+    ```python
+    mo.hstack(
+        [
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l/2, 0, 0, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l, 0, M * g, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(-l/2, l, np.pi / 4, 2 * M * g, np.pi / 2),
+                )
+            ),
+        ],
+        justify="space-around",
+    )
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell
+def _(M, g, l, np, svg, transform):
+    def booster(x, y, theta, f, phi):
+        flame_length = (l / 2) * (f / M / g)
+        return transform.translate(x, y)(
+            transform.rotate(theta / np.pi * 180.0)(
+                svg.rect(x=-l/20, y=-l/2, width=l/10, height=l, fill="black"),
+                transform.translate(0, -l / 2)(
+                    transform.rotate(phi / np.pi * 180)(
+                        svg.rect(
+                            x=-l/20,
+                            y=-flame_length,
+                            width=l/10,
+                            height=flame_length,
+                            fill="red",
+                        )
+                    )
+                )
+            )
+        )
+
+    return (booster,)
+
+
+@app.cell(hide_code=True)
+def _(M, booster, g, l, mo, np, world):
+    mo.hstack(
+        [
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l/2, 0, 0, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l, 0, M * g, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(-l/2, l, np.pi / 4, 2 * M * g, np.pi / 2),
+                )
+            ),
+        ],
+        justify="space-around",
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Booster Animation
+
+    Create a `booster_anim` function whose arguments are:
+
+    - `x`, `y`, `theta` (in radians), `f` and `phi` (in radians)
+    **which are functions of a time `t`**.
+    - an animation duration `T`,
+
+    and returns
+
+    - a SVG fragment that represents the animated body of the booster and the flame of its reactor during `T` seconds, then repeats.
+    (The booster drawing can be very simple, for example a rectangle for the body and another one of a different color for the flame will be fine.)
+
+    **Constraint:** make sure that
+
+    - the orientation of the flame is correct,
+    - its length is proportional to the force $f$,
+    - the flame length is equal to $\ell/2$ when $f=Mg$.
+
+    Test your function in the following scenario:
+
+    ```python
+    def booster_anim_0():
+        T = 5.0
+        def x(t):
+            return -l/2 + l * (t / T)
+        def y(t):
+            return l/2 + l/2 * (t / T)
+        def theta(t):
+            return (t / T) * 2 * np.pi
+        def f(t):
+            return M * g * (t / T)
+        def phi(t):
+            return 2 * np.pi * (t / T)
+        return booster_anim(x, y, theta, f, phi, T=T)
+
+    mo.Html(
+        world([-3, 3, -2, 4], booster_anim_0())
+    ).center()
+    ```
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell
+def _(M, animate_transform, g, l, np, svg):
+    def booster_anim(x, y, theta, f, phi, T):
+        if not callable(theta):
+            theta_cst = theta
+            theta = lambda t: theta_cst
+        if not callable(phi):
+            phi_cst = phi
+            phi = lambda t: phi_cst
+
+        def theta_deg(t):
+            return theta(t) / np.pi * 180.0
+
+        def phi_deg(t):
+            return phi(t) / np.pi * 180.0
+
+        return animate_transform.translate(x, y, T=T)(
+            animate_transform.rotate(theta_deg, T=T)(
+                svg.rect(
+                    x=-l / 20,
+                    y=-l/2,
+                    width=l / 10,
+                    height=l,
+                    fill="black",
+                ),
+                animate_transform.translate(y=-l/2, T=T)(
+                    animate_transform.rotate(phi_deg, T=T)(
+                        animate_transform.scale(y=f, T=T)(
+                            svg.rect(
+                                x=-l/20,
+                                y=-1/M/g,
+                                width=l / 10,
+                                height=1/M/g,
+                                fill="red",
+                            )
+                        )
+                    )
+                ),
+            )
+        )
+
+    return (booster_anim,)
+
+
+@app.cell
+def _(M, booster_anim, g, l, np):
+    def booster_anim_0():
+        T = 5.0
+        def x(t):
+            return -l/2 + l * (t / T)
+        def y(t):
+            return l/2 + l/2 * (t / T)
+        def theta(t):
+            return (t / T) * 2 * np.pi
+        def f(t):
+            return M * g * (t / T)
+        def phi(t):
+            return 2 * np.pi * (t / T)
+        return booster_anim(x, y, theta, f, phi, T=T)
+
+    return (booster_anim_0,)
+
+
+@app.cell
+def _(booster_anim_0, mo, world):
+    mo.Html(
+        world([-3, 3, -2, 4], booster_anim_0())
+    ).center() 
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Animated Simulation Results
+
+    Let's go back to a booster whose evolution is governed by its system of ordinary differentential equations. Produce a animation of the booster for 5 seconds for each of the following initial value problems:
+
+    1. $(x, \dot{x}, y, \dot{y}, \theta, \dot{\theta}) = (0.0, 0.0, 10.0, 0.0, 0.0, 0.0)$, $f=0$ and $\phi=0$
+
+    2. $(x, \dot{x}, y, \dot{y}, \theta, \dot{\theta}) = (0.0, 0.0, 10.0, 0.0, 0.0, 0.0)$, $f=Mg$ and $\phi=0$
+
+    3. $(x, \dot{x}, y, \dot{y}, \theta, \dot{\theta}) = (0.0, 0.0, 10.0, 0.0, 0.0, 0.0)$, $f=Mg$ and $\phi=\pi/8$
+
+    4. The "controlled landing" scenario (see above).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### 🔓 Solution
+    """)
+    return
+
+
+@app.cell
+def _(booster_anim, mo, np, redstart_solve, world):
+    def anim_1():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] 
+        def f_phi(t, state):
+            return np.array([0, 0])
+        sol = redstart_solve(t_span, y0, f_phi)
+        x = lambda t: sol(t)[0]
+        y = lambda t: sol(t)[2]
+        theta = lambda t : sol(t)[4]
+        f = lambda t: f_phi(t, sol(t))[0]
+        phi = lambda t: f_phi(t, sol(t))[0]
+        return mo.Html(
+            world(
+                [-3, 3, -2, 12], 
+                booster_anim(x, y, theta, f, phi, T=t_span[1])
+            )
+        ).center()
+
+    anim_1()
+    return
+
+
+@app.cell
+def _(M, booster_anim, g, mo, np, redstart_solve, world):
+    def anim_2():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
+        def f_phi(t, state):
+            return np.array([M * g, 0])
+        sol = redstart_solve(t_span, y0, f_phi)
+        x = lambda t: sol(t)[0]
+        y = lambda t: sol(t)[2]
+        theta = lambda t : sol(t)[4]
+        f = lambda t: f_phi(t, sol(t))[0]
+        phi = lambda t: f_phi(t, sol(t))[1]
+        return mo.Html(
+            world(
+                [-3, 3, -2, 12], 
+                booster_anim(x, y, theta, f, phi, T=t_span[1])
+            )
+        ).center()
+
+    anim_2()
+    return
+
+
+@app.cell
+def _(M, booster_anim, g, mo, np, redstart_solve, world):
+    def anim_3():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
+        def f_phi(t, state):
+            return np.array([M * g, np.pi / 8])
+        sol = redstart_solve(t_span, y0, f_phi)
+        x = lambda t: sol(t)[0]
+        y = lambda t: sol(t)[2]
+        theta = lambda t : sol(t)[4]
+        f = lambda t: f_phi(t, sol(t))[0]
+        phi = lambda t: f_phi(t, sol(t))[1]
+        return mo.Html(
+            world(
+                [-3, 3, -2, 12], 
+                booster_anim(x, y, theta, f, phi, T=t_span[1])
+            )
+        ).center()
+
+    anim_3()
+    return
+
+
+@app.cell
+def _(booster_anim, mo, np, redstart_solve, world):
+    def anim_4():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
+        def f_phi(t, state):
+            return np.array([48 / 125 * t + 11 / 25, 0])
+        sol = redstart_solve(t_span, y0, f_phi)
+        x = lambda t: sol(t)[0]
+        y = lambda t: sol(t)[2]
+        theta = lambda t : sol(t)[4]
+        f = lambda t: f_phi(t, sol(t))[0]
+        phi = lambda t: f_phi(t, sol(t))[1]
+        return mo.Html(
+            world(
+                [-3, 3, -2, 12], 
+                booster_anim(x, y, theta, f, phi, T=t_span[1])
+            )
+        ).center()
+
+    anim_4()
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    # Linearized Dynamics
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Equilibria
+
+    We assume that
+
+    - $|\theta| < \pi/2$,
+    - $|\phi| < \pi/2$, and
+    - $f > 0$.
+
+    What are the possible equilibria of the system for constant inputs $f$ and $\phi$ and what are the corresponding values of these inputs?
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Equilibria
+
+    Un état d'équilibre est défini par l'annulation des accélérations et des vitesses : $\ddot{x} = 0, \ddot{y} = 0, \ddot{\theta} = 0$ et $v_x = v_y = \omega = 0$.
+
+    ### 1. Condition de rotation
+    D'après l'équation du moment cinétique :
+    $$J \ddot{\theta} = - f (\ell/2) \sin \phi$$
+    L'équilibre $\ddot{\theta} = 0$ avec $f > 0$ impose $\sin \phi = 0$. Pour $|\phi| < \pi/2$, on obtient :
+    $$\mathbf{\phi_e = 0}$$
+
+    ### 2. Condition de translation horizontale
+    D'après le PFD sur l'axe $x$ :
+    $$M \ddot{x} = -f \sin (\theta + \phi)$$
+    Avec $\phi_e = 0$, l'équilibre $\ddot{x} = 0$ impose $\sin \theta = 0$. Pour $|\theta| < \pi/2$, on obtient :
+    $$\mathbf{\theta_e = 0}$$
+
+    ### 3. Condition de translation verticale
+    D'après le PFD sur l'axe $y$ :
+    $$M \ddot{y} = f \cos(\theta + \phi) - Mg$$
+    Avec $\theta_e = 0$ et $\phi_e = 0$, l'équilibre $\ddot{y} = 0$ impose $f - Mg = 0$, soit :
+    $$\mathbf{f_e = Mg}$$
+
+    **Conclusion :** Il existe une infinité de points d'équilibre (vol stationnaire). Tout état respectant la verticalité ($\theta=0$), une poussée alignée ($\phi=0$) et une intensité compensant le poids ($f=Mg$) est un équilibre, quelle que soit la position $(x, y)$ du booster dans l'espace.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Linearized Model
+
+    Introduce the error variables $\Delta x$, $\Delta y$, $\Delta \theta$, and $\Delta f$ and $\Delta \phi$ of the state and input values with respect to the generic equilibrium configuration.
+    What are the linear ordinary differential equations that govern (approximately) these variables in a neighbourhood of the equilibrium?
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Linearized Model
+
+    On définit les variables d'écart par rapport à l'équilibre $(\theta_e=0, \phi_e=0, f_e=Mg)$. Pour chaque variable $z$, on note l'écart $\Delta z = z - z_e$ (par exemple $\Delta x = x - x_e$ et $\Delta y = y - y_e$).
+
+    Les approximations utilisées pour la linéarisation au premier ordre sont :
+    * $\sin(\alpha) \approx \alpha$
+    * $\cos(\alpha) \approx 1$
+    * Négliger les produits de petits écarts (ex: $\Delta f \cdot \Delta \theta \approx 0$).
+
+    ### 1. Translation horizontale (Axe $x$)
+    * **Équation source :**
+    $$M \ddot{x} = -f \sin(\theta + \phi)$$
+    * **Linéarisation :**
+    $$M \Delta \ddot{x} \approx -(Mg + \Delta f) (\Delta \theta + \Delta \phi) \approx -Mg(\Delta \theta + \Delta \phi)$$
+    $$\implies \Delta \ddot{x} = -g \Delta \theta - g \Delta \phi$$
+
+    ### 2. Translation verticale (Axe $y$)
+    * **Équation source :**
+    $$M \ddot{y} = f \cos(\theta + \phi) - Mg$$
+    * **Linéarisation :**
+    $$M \Delta \ddot{y} \approx (Mg + \Delta f)(1) - Mg = \Delta f$$
+    $$\implies \Delta \ddot{y} = \frac{\Delta f}{M}$$
+
+
+
+    ### 3. Rotation (Axe $\theta$)
+    * **Équation source :**
+    $$J \ddot{\theta} = -f \frac{\ell}{2} \sin \phi$$
+    * **Linéarisation :**
+    En utilisant $\sin \phi \approx \Delta \phi$ et $f \approx Mg$ :
+    $$J \Delta \ddot{\theta} \approx -Mg \frac{\ell}{2} \Delta \phi$$
+    En substituant $J = \frac{1}{12} M\ell^2$ :
+    $$\Delta \ddot{\theta} = -\frac{6g}{\ell} \Delta \phi$$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Standard Form
+
+    1. What are the matrices $A$ and $B$ associated to this linear model in standard form?
+    2. Define the corresponding NumPy arrays `A` and `B`.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 🔓 Solution (Question 1)
+
+    Le système linéarisé au voisinage de l'équilibre s'écrit sous la forme d'état standard $\Delta \dot{s} = A \Delta s + B \Delta u$.
+
+    Le vecteur d'état est $\Delta s = (\Delta x, \Delta v_x, \Delta y, \Delta v_y, \Delta \theta, \Delta \omega)^\top \in \mathbb{R}^6$ et le vecteur d'entrée est $\Delta u = (\Delta f, \Delta \phi)^\top \in \mathbb{R}^2$.
+
+    D'après les équations du mouvement linéarisées :
+    * $\Delta \dot{x} = \Delta v_x$
+    * $\Delta \dot{v}_x = -g \Delta \theta - g \Delta \phi$
+    * $\Delta \dot{y} = \Delta v_y$
+    * $\Delta \dot{v}_y = \frac{1}{M} \Delta f$
+    * $\Delta \dot{\theta} = \Delta \omega$
+    * $\Delta \dot{\omega} = - \frac{6g}{\ell} \Delta \phi$
+
+    On en déduit les matrices $A$ et $B$ suivantes :
+
+    $$
+    A = \begin{bmatrix}
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{bmatrix}, \quad
+    B = \begin{bmatrix}
+    0 & 0 \\
+    0 & -g \\
+    0 & 0 \\
+    1/M & 0 \\
+    0 & 0 \\
+    0 & -6g/\ell
+    \end{bmatrix}
+    $$
+    """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    A = np.array([
+        [0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, -g, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0]
+    ])
+
+    B = np.array([
+        [0, 0],
+        [0, -g],
+        [0, 0],
+        [1/M, 0],
+        [0, 0],
+        [0, -6*g/l]
+    ])
+
+    A,B
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Stability
+
+    Is the generic equilibrium asymptotically stable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    L'analyse de la stabilité locale du système s'effectue en calculant les valeurs propres de la matrice d'état $A$.
+
+    ### 🔓 Solution
+
+    La matrice $A$ est une matrice triangulaire supérieure par blocs dont tous les éléments diagonaux sont nuls. Son polynôme caractéristique est donc :
+    $$P(s) = \det(sI - A) = s^6$$
+
+    Le système possède une unique valeur propre **$\lambda = 0$ de multiplicité 6**.
+
+    1.  **Stabilité asymptotique** : Un système est asymptotiquement stable si et seulement si toutes ses valeurs propres ont une partie réelle strictement négative ($\text{Re}(\lambda) < 0$). Ce n'est clairement pas le cas ici.
+    2.  **Stabilité au sens de Lyapunov** : Pour que le système soit stable, les valeurs propres sur l'axe imaginaire (ici $0$) devraient être associées à des blocs de Jordan de taille 1. Or, notre matrice $A$ contient des structures d'intégrateurs doubles (pour $x, y$ et $\theta$), ce qui entraîne une croissance polynomiale de l'erreur en cas de perturbation.
+
+    **Conclusion :** L'équilibre générique est **instable**. Sans intervention du système de contrôle pour modifier la poussée et l'angle du moteur, le booster ne peut pas maintenir sa position ou sa verticalité.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Controllability
+
+    Is the linearized model controllable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Pour déterminer si le modèle linéarisé est commandable, on étudie le rang de la matrice de commandabilité de Kalman $\mathcal{C}$ :
+    $$\mathcal{C} = [B, AB, A^2B, A^3B, A^4B, A^5B]$$
+
+    ### 🔓 Solution
+
+    L'analyse peut être simplifiée en observant le découplage du système en deux sous-systèmes indépendants :
+
+    1. **Sous-système vertical ($\Delta y, \Delta v_y$)** : Piloté uniquement par $\Delta f$. La matrice de commandabilité réduite est de rang 2. L'altitude est donc commandable.
+    2. **Sous-système latéral et angulaire ($\Delta x, \Delta v_x, \Delta \theta, \Delta \omega$)** : Piloté par l'unique commande $\Delta \phi$. La matrice de commandabilité associée est :
+       $\mathcal{C}_{lat} = \begin{bmatrix} 0 & -g & 0 & 6g^2/\ell \\ -g & 0 & 6g^2/\ell & 0 \\ 0 & -6g/\ell & 0 & 0 \\ -6g/\ell & 0 & 0 & 0 \end{bmatrix}$
+       Cette matrice est de rang plein (rang 4), car son déterminant est non nul pour $g, \ell > 0$.
+
+    **Conclusion :** La matrice de commandabilité totale du système est de **rang 6** (rang plein). Le modèle linéarisé est donc **entièrement commandable**.
+
+
+
+    Cela signifie qu'il est théoriquement possible de concevoir une loi de commande permettant de stabiliser le booster et de le ramener à son point d'équilibre, malgré son instabilité naturelle.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Lateral Dynamics
+
+    We limit our interest in the lateral position $x$, the tilt $\theta$ and their derivatives (we are for the moment fine with letting $y$ and $\dot{y}$ be uncontrolled). We also set $f = M g$ and control the system only with $\phi$.
+
+    - What are the new (reduced) matrices $A$ and $B$ for this reduced system?
+
+    - Check the controllability of this new system.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On réduit le système à l'étude de la position latérale $x$ et de l'angle $\theta$, en fixant $f = Mg$. Le vecteur d'état devient $\Delta s_{lat} = (\Delta x, \Delta v_x, \Delta \theta, \Delta \omega)^\top$ et la commande est $\Delta \phi$.
+
+    ### Matrices du système réduit
+    D'après les équations linéarisées précédentes :
+    $$
+    A_{lat} = \begin{bmatrix}
+    0 & 1 & 0 & 0 \\
+    0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0
+    \end{bmatrix}, \quad
+    B_{lat} = \begin{bmatrix}
+    0 \\
+    -g \\
+    0 \\
+    -6g/\ell
+    \end{bmatrix}
+    $$
+
+    ### Analyse de commandabilité
+    La matrice de Kalman $\mathcal{C}_{lat} = [B, AB, A^2B, A^3B]$ est de rang 4. Le système latéral est donc **entièrement commandable**, ce qui signifie qu'on peut stabiliser à la fois la position $x$ et l'angle $\theta$ en utilisant uniquement l'orientation du moteur $\phi$.
+    """)
+    return
+
+
+@app.cell
+def _(g, l, np):
+    A_lat = np.array([[0,1,0,0],[0,0,-g,0],[0,0,0,1],[0,0,0,0.]])
+    B_lat = np.array([[0],[-g],[0],[-3*g/l]])
+    print('A_lat ='); print(A_lat)
+    print('B_lat ='); print(B_lat)
+
+    A_lat
+    B_lat
+    return A_lat, B_lat
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Linear Model in Free Fall
+
+    Make graphs of $x(t)$ and $\theta(t)$ for the linearized model when
+    - $x(0)=0$, $\dot{x}(0)=0$, $\theta(0) = \pi/4$, $\dot{\theta}(0) =0$, and
+    - $\phi(t)=0$ at all times.
+
+    What do you see? How do you explain it?
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    s0_ff = np.array([0.0, 0.0, np.pi/4, 0.0])
+
+    def lat_rhs(t, s, K=None):
+        phi = 0.0 if K is None else float(-K @ s)
+        return A_lat @ s + B_lat.flatten() * phi
+
+    sol_ff = scipy.integrate.solve_ivp(lat_rhs, [0,20], s0_ff, dense_output=True)
+    t_ff = np.linspace(0,20,1000); s_ff = sol_ff.sol(t_ff)
+
+    fig, axes = plt.subplots(1,2,figsize=(12,4))
+    axes[0].plot(t_ff, s_ff[0]); axes[0].set_title(r'$\Delta x(t)$'); axes[0].grid(True)
+    axes[1].plot(t_ff, s_ff[2], color='orange'); axes[1].set_title(r'$\Delta\theta(t)$'); axes[1].grid(True)
+    plt.tight_layout(); plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Analysons le comportement du modèle linéarisé avec une inclinaison initiale $\theta(0) = \pi/4$ et sans action corrective ($\phi=0$).
+
+    ### 🔓 Solution
+
+    1. **Stagnation de l'angle** : Puisque le moteur n'est pas orienté ($\phi = 0$), aucun couple n'est généré pour redresser le booster. L'accélération angulaire $\Delta \dot{\omega}$ est nulle, et l'inclinaison $\theta$ reste figée à $\pi/4$.
+
+    2. **Dérive latérale** : L'inclinaison constante crée une force latérale persistante dans le modèle linéarisé : $\Delta \dot{v}_x = -g \theta(0)$. Cela se traduit par une accélération constante vers la gauche.
+
+    **Conclusion :** On observe un "glissement" latéral accéléré. Contrairement à un objet inerte, le booster moteur allumé mais incliné sans contrôle s'auto-propulse sur le côté. Cela illustre parfaitement l'instabilité du système : une simple erreur d'angle initiale entraîne une divergence catastrophique de la position.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Manually Tuned Controller
+
+    Try to find the two missing coefficients of the matrix
+
+    $$
+    K =
+    \begin{bmatrix}
+    0 & 0 & ? & ?
+    \end{bmatrix}
+    \in \mathbb{R}^{4\times 1}
+    $$
+
+    such that the control law
+
+    $$
+    \Delta \phi(t) = - K \cdot
+    \begin{bmatrix}
+    \Delta x(t) \\
+    \Delta \dot{x}(t) \\
+    \Delta \theta(t) \\
+    \Delta \dot{\theta}(t)
+    \end{bmatrix} \in \mathbb{R}
+    $$
+
+    manages  when
+    $\Delta x(0)=0$, $\Delta \dot{x}(0)=0$, $\Delta \theta(0) = 45 / 180  \times \pi$  and $\Delta \dot{\theta}(0) =0$ to:
+
+    - make $\Delta \theta(t) \to 0$ in approximately $20$ sec (or less),
+    - $|\Delta \theta(t)| < \pi/2$ and $|\Delta \phi(t)| < \pi/2$ at all times,
+    - (but we don't care about a possible drift of $\Delta x(t)$).
+
+    Explain your thought process, show your iterative guesses and simulations!
+
+    Is your final closed-loop model asymptotically stable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    L'objectif est de stabiliser l'angle $\theta$ en environ 20 secondes, en ignorant la dérive de la position $x$. La commande prend la forme $\Delta \phi = -K_3 \Delta \theta - K_4 \Delta \dot{\theta}$.
+
+    ### 🔓 Solution
+
+    **1. Équation en boucle fermée**
+    En injectant la loi de commande dans la dynamique de rotation linéarisée $\Delta \ddot{\theta} = -\frac{6g}{\ell} \Delta \phi$, on obtient :
+    $$\Delta \ddot{\theta} - \frac{6g}{\ell} K_4 \Delta \dot{\theta} - \frac{6g}{\ell} K_3 \Delta \theta = 0$$
+    Pour correspondre à un oscillateur harmonique amorti standard $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$, nous devons choisir $K_3 < 0$ et $K_4 < 0$.
+
+    **2. Réglage des paramètres (Itérations)**
+    Sachant que $g=1$ et $\ell=2$, le coefficient devant les gains est $\frac{6g}{\ell} = 3$.
+    Pour un temps d'établissement d'environ $20$ s sans dépassement indésirable (qui risquerait de violer les limites d'angle), on vise un système à l'amortissement critique ($\zeta = 1$).
+    Le temps de réponse à 5% est approché par $t_r \approx 3 / (\zeta \omega_n)$. Pour $t_r = 20$ s, on a $\omega_n = 0.15$ rad/s.
+
+    Par identification :
+    * $-3 K_3 = \omega_n^2 = 0.0225 \implies \mathbf{K_3 = -0.0075}$
+    * $-3 K_4 = 2\zeta\omega_n = 0.3 \implies \mathbf{K_4 = -0.1}$
+
+    La matrice de gain est donc :
+    $$K = \begin{bmatrix} 0 & 0 & -0.0075 & -0.1 \end{bmatrix}$$
+
+
+    **3. Stabilité globale du modèle en boucle fermée**
+    Le modèle complet en boucle fermée **n'est pas asymptotiquement stable**.
+    En effet, la matrice d'état rebouclée $(A_{lat} - B_{lat}K)$ contient deux valeurs propres strictement nulles associées aux états non observés/non contrôlés $\Delta x$ et $\Delta v_x$. Si l'angle est parfaitement ramené à 0, la vitesse horizontale acquise pendant la phase de redressement n'est jamais freinée, ce qui entraîne une dérive infinie de la position $x$.
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    def manual_controller_sim():
+    
+        K = np.array([[0, 0, -0.0075, -0.1]])
+        A_cl = A_lat - B_lat @ K
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+        phi_t = -K @ sol.y
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t[0] * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    manual_controller_sim()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Controller Tuned with Pole Assignment
+
+    Using pole assignement, find a matrix
+
+    $$
+    K_{pp} =
+    \begin{bmatrix}
+    ? & ? & ? & ?
+    \end{bmatrix}
+    \in \mathbb{R}^{4\times 1}
+    $$
+
+    such that the control law
+
+    $$
+    \Delta \phi(t)
+    = - K_{pp} \cdot
+    \begin{bmatrix}
+    \Delta x(t) \\
+    \Delta \dot{x}(t) \\
+    \Delta \theta(t) \\
+    \Delta \dot{\theta}(t)
+    \end{bmatrix} \in \mathbb{R}
+    $$
+
+    satisfies the conditions defined for the manually tuned controller and additionally:
+
+    - result in an asymptotically stable closed-loop dynamics,
+
+    - make $\Delta x(t) \to 0$ in approximately $20$ sec (or less).
+
+    Explain how you find the proper design parameters!
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Pour ramener la position $x(t)$ à $0$ tout en stabilisant l'angle, nous devons utiliser un retour d'état complet :
+    $$\Delta \phi = -K_{pp} \Delta s_{lat}$$
+
+    ### 🔓 Solution
+
+    **1. Stratégie de placement**
+    Le système étant commandable, on peut imposer la dynamique en boucle fermée en choisissant les 4 valeurs propres de la matrice $(A_{lat} - B_{lat}K_{pp})$.
+    Pour un temps de réponse de $20$ secondes, la dynamique dominante doit se situer autour de $-3/20 = -0.15$.
+    Pour éviter un comportement oscillatoire et des commandes trop brusques qui violeraient la limite $|\phi| < \pi/2$, nous choisissons 4 pôles réels espacés :
+    $$P = [-0.15, -0.20, -0.25, -0.30]$$
+
+    **2. Calcul de la matrice $K_{pp}$**
+    Nous utilisons la fonction `scipy.signal.place_poles` pour calculer les gains correspondants sans avoir à développer la formule d'Ackermann manuellement.
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    # Choix des pôles pour un temps de réponse doux (~20s)
+    poles = [-0.15, -0.20, -0.25, -0.30]
+
+    # Calcul de K_pp
+    res = scipy.signal.place_poles(A_lat, B_lat, poles)
+    K_pp = res.gain_matrix
+
+    A_cl = A_lat - B_lat @ K_pp
+
+    def cl_dynamics(t, s):
+        return A_cl @ s
+
+    t_span = [0.0, 30.0]
+    s0 = [0.0, 0.0, np.pi/4, 0.0]
+    t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+    sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    phi_t = -(K_pp @ sol.y)[0]
+
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1, 3, 1)
+    plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+    plt.title(r"Tilt $\theta(t)$ (deg)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.subplot(1, 3, 2)
+    plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+    plt.title(r"Command $\phi(t)$ (deg)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.subplot(1, 3, 3)
+    plt.plot(sol.t, sol.y[0], color="green")
+    plt.title(r"Position $x(t)$ (m)")
+    plt.xlabel("Time (s)")
+    plt.axhline(0, color='gray', linestyle='--')
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    # On retourne la figure et la matrice calculée pour vérification
+    print("K_pp calculé :", K_pp)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    def pole_placement_sim():
+    
+        # Matrice K_pp calculée précédemment réinjectée en dur
+        K_pp = np.array([[0.00075, 0.01425, -0.09941667, -0.30475]])
+    
+        A_cl = A_lat - B_lat @ K_pp
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    
+        # phi(t) = -K * s(t)
+        phi_t = -(K_pp @ sol.y)[0]
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    pole_placement_sim()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Controller Tuned with Optimal Control
+
+    Using optimal control, find a gain matrix $K_{oc}$ that satisfies the same set of requirements that the one defined using pole placement.
+
+    Explain how you find the proper design parameters!
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Pour trouver un compromis mathématiquement parfait entre la rapidité de la correction et l'économie d'effort (minimisation de l'angle de braquage), nous utilisons un régulateur linéaire quadratique (LQR).
+
+    ### 🔓 Solution
+
+    **1. Stratégie du Contrôle Optimal (LQR)**
+    La méthode LQR calcule la matrice de gain $K_{oc}$ qui minimise la fonction de coût (énergie totale) suivante :
+    $$J = \int_{0}^{\infty} (\Delta s_{lat}^\top Q \Delta s_{lat} + \Delta u^\top R \Delta u) dt$$
+
+    * **La matrice $Q$** pénalise l'erreur sur l'état. Pour forcer le booster à revenir à $x=0$ tout en gardant l'inclinaison $\theta$ très petite pour éviter de basculer, on pénalise ces états : $Q = \text{diag}(1, 1, 10, 1)$.
+    * **La matrice $R$** pénalise l'effort de commande (l'angle $\phi$). Pour respecter les limites physiques et éviter de saturer le moteur, on fixe un coût élevé : $R = [100]$.
+
+    **2. Calcul du gain $K_{oc}$**
+    La résolution de l'équation algébrique de Riccati (ARE) associée à ces matrices $Q$ et $R$ nous donne le gain optimal.
+    $$K_{oc} = \begin{bmatrix} 0.1000 & 0.4260 & -0.8573 & -0.8906 \end{bmatrix}$$
+
+    **3. Analyse du comportement**
+    Le contrôleur LQR garantit la stabilité asymptotique. La trajectoire générée sera plus fluide et "naturelle" que celle du placement de pôles, car elle minimise les pics de commande tout en assurant l'arrivée à la cible.
+    """)
+    return
+
+
+@app.cell
+def _(g, l, np, plt, scipy):
+    def optimal_control_sim():
+        A_lat = np.array([
+            [0, 1, 0, 0],
+            [0, 0, -g, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0]
+        ])
+        B_lat = np.array([
+            [0],
+            [-g],
+            [0],
+            [-6*g/l]
+        ])
+    
+        # Matrice K_oc calculée via LQR (Q=diag(1,1,10,1), R=100) réinjectée en dur
+        K_oc = np.array([[0.1, 0.42597627, -0.85727891, -0.89059623]])
+    
+        A_cl = A_lat - B_lat @ K_oc
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+    
+        # phi(t) = -K * s(t)
+        phi_t = -(K_oc @ sol.y)[0]
+
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    optimal_control_sim()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Validation
+
+    Test the two control strategies (pole placement and optimal control) on the "true" (nonlinear) model with an animation. Check that both controllers achieve their goal; otherwise, go back to the drawing board and tweak the design parameters until they do!
+    """)
+    return
+
+
+if __name__ == "__main__":
+    app.run()
