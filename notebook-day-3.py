@@ -2504,18 +2504,18 @@ def _(mo):
 @app.cell
 def _(M, g, l, np):
     def Tr(x, dx, y, dy, theta, dtheta, z, dz):
-        """State to derivatives of the output h."""
-        s_t = np.sin(theta)
-        c_t = np.cos(theta)
-        h_x = x - (l / 6) * s_t
-        h_y = y + (l / 6) * c_t
-        dh_x = dx - (l / 6) * c_t * dtheta
-        dh_y = dy - (l / 6) * s_t * dtheta
-        d2h_x = -z / M * s_t
-        d2h_y = z / M * c_t - g
-        d3h_x = -(dz * s_t + z * c_t * dtheta) / M
-        d3h_y = (dz * c_t - z * s_t * dtheta) / M
+        c, s = np.cos(theta), np.sin(theta)
+        h_x   = x - (l/6) * s
+        h_y   = y + (l/6) * c
+        dh_x  = dx - (l/6) * c * dtheta
+        dh_y  = dy - (l/6) * s * dtheta
+        d2h_x = z * s / M
+        d2h_y = -z * c / M - g
+        d3h_x = (dz * s + z * c * dtheta) / M
+        d3h_y = (-dz * c + z * s * dtheta) / M
         return h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y
+
+
 
     return (Tr,)
 
@@ -2523,12 +2523,6 @@ def _(M, g, l, np):
 @app.cell
 def _(Tr):
     Tr(1.0, 2.0, 3.0, 4.0, 0.1, 0.2, -0.3, -0.4)
-    return
-
-
-@app.cell
-def _(T_inv, Tr):
-    T_inv(*Tr(1.0, 2.0, 3.0, 4.0, 0.1, 0.2, -0.3, -0.4))
     return
 
 
@@ -2548,30 +2542,18 @@ def _(mo):
 @app.cell
 def _(M, g, l, np):
     def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
-        a_x = d2h_x
-        a_y = d2h_y + g
-        z = -np.sqrt(a_x**2 + a_y**2) * M 
-    
-    
-        theta = np.arctan2(a_x, -a_y)
-    
-        s_t = np.sin(theta)
-        c_t = np.cos(theta)
-        x = h_x + (l / 6) * s_t
-        y = h_y - (l / 6) * c_t
-    
-        if abs(z) > 1e-12:
-        
-            dtheta = M * (d3h_x * c_t + d3h_y * s_t) / (-z)
-        else:
-            dtheta = 0.0
-        
-        dz = -M * (d3h_x * s_t - d3h_y * c_t)
-    
-        dx = dh_x + (l / 6) * c_t * dtheta
-        dy = dh_y + (l / 6) * s_t * dtheta
-    
+        z = -M * np.sqrt(d2h_x**2 + (d2h_y + g)**2)
+        theta = np.arctan2(-d2h_x, d2h_y + g)
+        c, s = np.cos(theta), np.sin(theta)
+        x = h_x + (l/6) * s
+        y = h_y - (l/6) * c
+        dz = M * (d3h_x * s - d3h_y * c)
+        dtheta = M * (d3h_x * c + d3h_y * s) / z
+        dx = dh_x + (l/6) * c * dtheta
+        dy = dh_y + (l/6) * s * dtheta
         return x, dx, y, dy, theta, dtheta, z, dz
+
+
 
     return (T_inv,)
 
@@ -2619,8 +2601,53 @@ def _(mo):
 
 
 @app.cell
-def _():
-    return
+def _(M, T_inv, Tr, l, np):
+    def compute(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+                x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf, tf):
+        H0  = Tr(x_0,  dx_0,  y_0,  dy_0,  theta_0,  dtheta_0,  z_0,  dz_0)
+        Htf = Tr(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
+
+        def poly_coeffs(p0, dp0, ddp0, d3p0, ptf, dptf, ddptf, d3ptf):
+            T = tf
+            A_ = np.zeros((8, 8))
+            b_ = np.array([p0, dp0, ddp0, d3p0, ptf, dptf, ddptf, d3ptf], dtype=float)
+            # Conditions a t=0
+            A_[0, 0] = 1
+            A_[1, 1] = 1
+            A_[2, 2] = 2
+            A_[3, 3] = 6
+            for k in range(8):                       A_[4, k] = T**k
+            for k in range(1, 8):                    A_[5, k] = k * T**(k-1)
+            for k in range(2, 8):                    A_[6, k] = k*(k-1) * T**(k-2)
+            for k in range(3, 8):                    A_[7, k] = k*(k-1)*(k-2) * T**(k-3)
+            return np.linalg.solve(A_, b_)
+        a_x = poly_coeffs(H0[0], H0[2], H0[4], H0[6], Htf[0], Htf[2], Htf[4], Htf[6])
+        a_y = poly_coeffs(H0[1], H0[3], H0[5], H0[7], Htf[1], Htf[3], Htf[5], Htf[7])
+        from math import factorial
+        def eval_poly(a, t, order):
+            res = 0.0
+            for k in range(order, 8):
+                res += a[k] * factorial(k) / factorial(k - order) * t**(k - order)
+            return res
+        def fun(t):
+            hx   = eval_poly(a_x, t, 0); hy   = eval_poly(a_y, t, 0)
+            dhx  = eval_poly(a_x, t, 1); dhy  = eval_poly(a_y, t, 1)
+            d2hx = eval_poly(a_x, t, 2); d2hy = eval_poly(a_y, t, 2)
+            d3hx = eval_poly(a_x, t, 3); d3hy = eval_poly(a_y, t, 3)
+            d4hx = eval_poly(a_x, t, 4); d4hy = eval_poly(a_y, t, 4)
+            x, dx, y, dy, theta, dtheta, z, dz = T_inv(hx, hy, dhx, dhy, d2hx, d2hy, d3hx, d3hy)
+            c, s = np.cos(theta), np.sin(theta)
+            u1, u2 = M * d4hx, M * d4hy
+            v1 = s * u1 - c * u2 + z * dtheta**2
+            v2 = c * u1 + s * u2 - 2 * dz * dtheta
+            f_par  = M * l * dtheta**2 / 6 - z
+            f_perp = -M * l * v2 / (6 * z)
+            f = np.sqrt(f_par**2 + f_perp**2)
+            phi = np.arctan2(f_perp, f_par)
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+        return fun
+
+    return (compute,)
 
 
 @app.cell(hide_code=True)
@@ -2640,7 +2667,61 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(M, compute, g, l, np, plt):
+    def validate_exact_linearization():
+        fun = compute(
+            x_0=5.0, dx_0=0.0, y_0=20.0, dy_0=-1.0,
+            theta_0=-np.pi/8, dtheta_0=0.0, z_0=-M*g, dz_0=0.0,
+            x_tf=0.0, dx_tf=0.0, y_tf=2*l/3, dy_tf=0.0,
+            theta_tf=0.0, dtheta_tf=0.0, z_tf=-M*g, dz_tf=0.0,
+            tf=10.0,
+        )
+        t = np.linspace(0, 10, 500)
+        data = np.array([fun(ti) for ti in t])  
+        fig, axes = plt.subplots(3, 3, figsize=(13, 9))
+        axes[0,0].plot(t, data[:, 0]); axes[0,0].set_title("x(t)")
+        axes[0,1].plot(t, data[:, 2]); axes[0,1].set_title("y(t)")
+        axes[0,2].plot(t, data[:, 4]); axes[0,2].set_title(r"$\theta(t)$")
+        axes[1,0].plot(t, data[:, 1]); axes[1,0].set_title(r"$\dot x(t)$")
+        axes[1,1].plot(t, data[:, 3]); axes[1,1].set_title(r"$\dot y(t)$")
+        axes[1,2].plot(t, data[:, 5]); axes[1,2].set_title(r"$\dot\theta(t)$")
+        axes[2,0].plot(t, data[:, 8]); axes[2,0].set_title("f(t) ")
+        axes[2,0].axhline(M*g, color="r", ls=":", label="M g")
+        axes[2,0].legend()
+        axes[2,1].plot(t, data[:, 9]); axes[2,1].set_title(r"$\phi(t)$ ")
+        axes[2,1].axhline( np.pi/2, color="r", ls=":")
+        axes[2,1].axhline(-np.pi/2, color="r", ls=":")
+        axes[2,2].plot(t, data[:, 6]); axes[2,2].set_title("z(t)")
+        for ax in axes.ravel(): ax.set_xlabel("t"); ax.grid(True)
+        fig.tight_layout()
+        return fig
+
+    validate_exact_linearization()
+    return
+
+
+@app.cell
+def _(M, booster_anim, compute, g, l, np, world):
+    from IPython.display import HTML
+
+    def animate_exact_linearization():
+        tf = 10.0
+        fun = compute(
+            x_0=5.0, dx_0=0.0, y_0=20.0, dy_0=-1.0,
+            theta_0=-np.pi/8, dtheta_0=0.0, z_0=-M*g, dz_0=0.0,
+            x_tf=0.0, dx_tf=0.0, y_tf=2*l/3, dy_tf=0.0,
+            theta_tf=0.0, dtheta_tf=0.0, z_tf=-M*g, dz_tf=0.0,
+            tf=tf,
+        )
+        x     = lambda t: fun(t)[0]
+        y     = lambda t: fun(t)[2]
+        theta = lambda t: fun(t)[4]
+        f_t   = lambda t: fun(t)[8]
+        phi_t = lambda t: fun(t)[9]
+        svg = world([-3, 10, -2, 22], booster_anim(x, y, theta, f_t, phi_t, T=tf))
+        return HTML(f"<div style='text-align:center'>{svg}</div>")
+
+    animate_exact_linearization()
     return
 
 

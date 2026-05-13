@@ -15,6 +15,7 @@ numpy = "*"
 scipy = "*"
 matplotlib = "*"
 ruff = "*"
+ipython = ">=9.13.0,<10"
 
 [pypi-dependencies]
 marimo = ">=0.20,<0.21"
