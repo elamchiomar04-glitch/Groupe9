@@ -1585,6 +1585,8 @@ def _(mo):
 
 @app.cell
 def _(A_lat, B_lat, np, plt, scipy):
+
+
     # Choix des pôles pour un temps de réponse doux (~20s)
     poles = [-0.15, -0.20, -0.25, -0.30]
 
@@ -1722,6 +1724,71 @@ def _(mo):
 
 
 @app.cell
+def _(A_lat, B_lat, np, plt, scipy):
+    def optimal_control_sim():
+    
+    
+    
+        # --- Réglage LQR ---
+        # Q pénalise l'état : [x, vx, theta, omega]
+        # On pénalise fortement l'erreur sur x (1.0) et très fortement l'angle theta (10.0)
+        Q = np.diag([1.0, 1.0, 10.0, 1.0])
+    
+        # R pénalise la commande (l'angle de braquage phi)
+        # On met un coût élevé pour forcer le moteur à ne pas trop braquer
+        R = np.array([[100.0]])
+    
+        # Résolution de l'équation algébrique de Riccati (ARE)
+        P = scipy.linalg.solve_continuous_are(A_lat, B_lat, Q, R)
+    
+        # Calcul du gain optimal K_oc
+        K_oc = np.linalg.inv(R) @ B_lat.T @ P
+        print("K_oc calculé :", K_oc)
+    
+        # --- Simulation ---
+        A_cl = A_lat - B_lat @ K_oc
+
+        def cl_dynamics(t, s):
+            return A_cl @ s
+
+        t_span = [0.0, 30.0]
+        s0 = [0.0, 0.0, np.pi/4, 0.0]  # Inclinaison initiale de 45 degrés
+        t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+        sol = scipy.integrate.solve_ivp(cl_dynamics, t_span, s0, t_eval=t_eval)
+        phi_t = -(K_oc @ sol.y)[0]
+
+        # --- Affichage ---
+        plt.figure(figsize=(12, 4))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(sol.t, sol.y[2] * 180 / np.pi)
+        plt.title(r"Tilt $\theta(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 2)
+        plt.plot(sol.t, phi_t * 180 / np.pi, color="orange")
+        plt.title(r"Command $\phi(t)$ (deg)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(sol.t, sol.y[0], color="green")
+        plt.title(r"Position $x(t)$ (m)")
+        plt.xlabel("Time (s)")
+        plt.axhline(0, color='gray', linestyle='--')
+        plt.grid(True)
+
+        plt.tight_layout()
+        return plt.gcf()
+
+    return
+
+
+@app.cell
 def _(g, l, np, plt, scipy):
     def optimal_control_sim():
         A_lat = np.array([
@@ -1791,6 +1858,86 @@ def _(mo):
 
     Test the two control strategies (pole placement and optimal control) on the "true" (nonlinear) model with an animation. Check that both controllers achieve their goal; otherwise, go back to the drawing board and tweak the design parameters until they do!
     """)
+    return
+
+
+@app.cell
+def _(
+    A_lat,
+    B_lat,
+    M,
+    animation,
+    g,
+    l,
+    mo,
+    np,
+    plt,
+    scipy,
+    solve_continuous_are,
+):
+    # Réglage optimal : Forte pénalité sur l'angle (10) et la position (1)
+    Q = np.diag([1.0, 1.0, 10.0, 1.0])
+    R = np.array([[100.0]])
+    P = solve_continuous_are(A_lat, B_lat, Q, R)
+    K_oc = np.linalg.inv(R) @ B_lat.T @ P
+
+    # 2. Dynamique Non-Linéaire et Simulation
+    def booster_dynamics(t, s, K):
+        x, vx, y, vy, theta, omega = s
+        # Extraction de l'état latéral pour le contrôle
+        s_lat = np.array([x, vx, theta, omega])
+        phi = -np.dot(K, s_lat)[0]
+        f = M * g  # Poussée constante pour compenser le poids
+    
+        # Équations réelles (PFD + TMC)
+        ax = -(f/M) * np.sin(theta + phi)
+        ay = (f/M) * np.cos(theta + phi) - g
+        alpha = -(f * l / (2 * (1/12 * M * l**2))) * np.sin(phi)
+    
+        return [vx, ax, vy, ay, omega, alpha]
+
+    t_eval = np.linspace(0, 30, 300)
+    y0 = [0.0, 0.0, 10.0, 0.0, np.pi/4, 0.0] # 45 degrés d'inclinaison
+
+    sol = scipy.integrate.solve_ivp(
+        lambda t, s: booster_dynamics(t, s, K_oc), 
+        [0, 30], y0, t_eval=t_eval
+    )
+
+    # 3. Animation (Style Inspiré)
+    def render_animation(sol_data, t_data):
+        fig, ax = plt.subplots(figsize=(6, 8))
+        x_vals, y_vals, theta_vals = sol_data[0], sol_data[2], sol_data[4]
+    
+        ax.set_xlim(-8, 8)
+        ax.set_ylim(-1, 12)
+        ax.set_aspect('equal')
+    
+        # Décors
+        ax.axhline(0, color='saddlebrown', lw=3)
+        ax.fill_between([-10, 10], -1, 0, color='sandybrown', alpha=0.4)
+        ax.plot([-1, 1], [0, 0], color='limegreen', lw=6, label='Pad')
+    
+        # Objets booster
+        body, = ax.plot([], [], 'k-', lw=5, solid_capstyle='round')
+        engine, = ax.plot([], [], 'ro', ms=5)
+        trail, = ax.plot([], [], 'b--', lw=1, alpha=0.4)
+        telemetry = ax.text(0.05, 0.95, '', transform=ax.transAxes, va='top', fontfamily='monospace')
+
+        def update(i):
+            x, y, th = x_vals[i], y_vals[i], theta_vals[i]
+            dx, dy = (l/2)*np.sin(th), (l/2)*np.cos(th)
+        
+            body.set_data([x + dx, x - dx], [y + dy, y - dy])
+            engine.set_data([x - dx], [y - dy])
+            trail.set_data(x_vals[:i], y_vals[:i])
+            telemetry.set_text(f"t: {t_data[i]:.1f}s\nx: {x:.2f}m\ny: {y:.2f}m\nθ: {np.degrees(th):.1f}°")
+            return body, engine, trail, telemetry
+
+        anim = animation.FuncAnimation(fig, update, frames=len(t_data), interval=50, blit=True)
+        plt.close(fig)
+        return mo.Html(anim.to_jshtml())
+
     return
 
 
