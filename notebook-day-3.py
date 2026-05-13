@@ -2386,6 +2386,114 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## Exact Feedback Linearization
+
+    To demonstrate exact feedback linearization, define the target linear dynamics as
+
+    $$
+    h^{(4)} = u,
+    \qquad
+    u =
+    \begin{bmatrix}
+    u_1 \\
+    u_2
+    \end{bmatrix}.
+    $$
+
+    Using the previously derived expression for $h^{(4)}$, the system can be written in matrix form as
+
+    $$
+    \begin{bmatrix}
+    h_x^{(4)} \\
+    h_y^{(4)}
+    \end{bmatrix}
+    =
+    \frac{1}{M}
+    \begin{bmatrix}
+    -\sin\theta & -\cos\theta \\
+    \cos\theta & -\sin\theta
+    \end{bmatrix}
+    \begin{bmatrix}
+    v_1 \\
+    v_2
+    \end{bmatrix}
+    +
+    \frac{1}{M}
+    \begin{bmatrix}
+    -2\dot{z}\dot{\theta}\cos\theta + z\dot{\theta}^2\sin\theta \\
+    -2\dot{z}\dot{\theta}\sin\theta - z\dot{\theta}^2\cos\theta
+    \end{bmatrix}.
+    $$
+
+    To enforce the linearized dynamics $h^{(4)} = u$, solve algebraically for the auxiliary inputs $v_1$ and $v_2$. The associated coupling matrix is
+
+    $$
+    A(\theta)=
+    \begin{bmatrix}
+    -\sin\theta & -\cos\theta \\
+    \cos\theta & -\sin\theta
+    \end{bmatrix},
+    $$
+
+    whose determinant is
+
+    $$
+    \det(A)
+    =
+    (-\sin\theta)(-\sin\theta)
+    -
+    (-\cos\theta)(\cos\theta)
+    =
+    \sin^2\theta + \cos^2\theta
+    =
+    1.
+    $$
+
+    Since the determinant is nonzero for all $\theta$, the matrix is globally invertible.
+
+    The inverse mapping from the virtual input $u$ to the actuator input $v$ is therefore
+
+    $$
+    \begin{bmatrix}
+    v_1 \\
+    v_2
+    \end{bmatrix}
+    =
+    M
+    \begin{bmatrix}
+    -\sin\theta & \cos\theta \\
+    -\cos\theta & -\sin\theta
+    \end{bmatrix}
+    \left(
+    \begin{bmatrix}
+    u_1 \\
+    u_2
+    \end{bmatrix}
+    -
+    \frac{1}{M}
+    \begin{bmatrix}
+    -2\dot{z}\dot{\theta}\cos\theta + z\dot{\theta}^2\sin\theta \\
+    -2\dot{z}\dot{\theta}\sin\theta - z\dot{\theta}^2\cos\theta
+    \end{bmatrix}
+    \right).
+    $$
+
+    Applying this feedback transformation exactly cancels the nonlinear rotational coupling terms in the booster dynamics. The resulting closed-loop system reduces to two independent fourth-order integrator chains:
+
+    $$
+    h_x^{(4)} = u_1,
+    \qquad
+    h_y^{(4)} = u_2.
+    $$
+
+    Thus, the nonlinear system is transformed into a fully decoupled linear system, achieving exact feedback linearization.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 State to Derivatives of the Output
 
     Implement a function `Tr` of `x, dx, y, dy, theta, dtheta, z, dz` that returns `h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y`.
