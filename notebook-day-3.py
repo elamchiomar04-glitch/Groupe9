@@ -2501,6 +2501,37 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, g, l, np):
+    def Tr(x, dx, y, dy, theta, dtheta, z, dz):
+        """State to derivatives of the output h."""
+        s_t = np.sin(theta)
+        c_t = np.cos(theta)
+        h_x = x - (l / 6) * s_t
+        h_y = y + (l / 6) * c_t
+        dh_x = dx - (l / 6) * c_t * dtheta
+        dh_y = dy - (l / 6) * s_t * dtheta
+        d2h_x = -z / M * s_t
+        d2h_y = z / M * c_t - g
+        d3h_x = -(dz * s_t + z * c_t * dtheta) / M
+        d3h_y = (dz * c_t - z * s_t * dtheta) / M
+        return h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y
+
+    return (Tr,)
+
+
+@app.cell
+def _(Tr):
+    Tr(1.0, 2.0, 3.0, 4.0, 0.1, 0.2, -0.3, -0.4)
+    return
+
+
+@app.cell
+def _(T_inv, Tr):
+    T_inv(*Tr(1.0, 2.0, 3.0, 4.0, 0.1, 0.2, -0.3, -0.4))
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -2511,6 +2542,43 @@ def _(mo):
 
     Implement the corresponding function `T_inv`.
     """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
+        a_x = d2h_x
+        a_y = d2h_y + g
+        z = -np.sqrt(a_x**2 + a_y**2) * M 
+    
+    
+        theta = np.arctan2(a_x, -a_y)
+    
+        s_t = np.sin(theta)
+        c_t = np.cos(theta)
+        x = h_x + (l / 6) * s_t
+        y = h_y - (l / 6) * c_t
+    
+        if abs(z) > 1e-12:
+        
+            dtheta = M * (d3h_x * c_t + d3h_y * s_t) / (-z)
+        else:
+            dtheta = 0.0
+        
+        dz = -M * (d3h_x * s_t - d3h_y * c_t)
+    
+        dx = dh_x + (l / 6) * c_t * dtheta
+        dy = dh_y + (l / 6) * s_t * dtheta
+    
+        return x, dx, y, dy, theta, dtheta, z, dz
+
+    return (T_inv,)
+
+
+@app.cell
+def _(T_inv, Tr):
+    T_inv(*Tr(1.0, 2.0, 3.0, 4.0, 0.1, 0.2, -0.3, -0.4))
     return
 
 
@@ -2550,6 +2618,11 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -2563,6 +2636,11 @@ def _(mo):
 
     Make the graph of the relevant variables as a function of time, then make an animation out of the same result. Comment and iterate if necessary!
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
