@@ -2324,6 +2324,54 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ### 🔓 Solution
+
+    **Third derivative.** Differentiating $\ddot{h}$ with respect to time:
+
+    $$
+    h^{(3)} =
+    \frac{\dot{z}}{M}\begin{bmatrix}\sin\theta \\ -\cos\theta\end{bmatrix}
+    +
+    \frac{z\,\dot{\theta}}{M}\begin{bmatrix}\cos\theta \\ \sin\theta\end{bmatrix}
+    $$
+
+    This depends only on $\theta$, $\dot{\theta}$, $z$, $\dot{z}$ (and constants).
+
+    **Fourth derivative.** Using $\ddot{z} = v_1$ and differentiating $h^{(3)}$:
+
+    $$
+    h^{(4)} =
+    \frac{v_1}{M}\begin{bmatrix}\sin\theta \\ -\cos\theta\end{bmatrix}
+    +
+    \frac{2\dot{z}\dot{\theta}}{M}\begin{bmatrix}\cos\theta \\ \sin\theta\end{bmatrix}
+    +
+    \frac{z\ddot{\theta}}{M}\begin{bmatrix}\cos\theta \\ \sin\theta\end{bmatrix}
+    -
+    \frac{z\dot{\theta}^2}{M}\begin{bmatrix}\sin\theta \\ -\cos\theta\end{bmatrix}
+    $$
+
+    The term $\ddot{\theta}$ involves $v_2$ through the auxiliary system: the second component
+    of $R(\theta-\pi/2)^{-1}(f_x, f_y)$ gives $M\ell v_2 / (6z)$, which contributes to
+    the torque and hence to $\ddot{\theta}$. Substituting and collecting:
+
+    $$
+    h^{(4)} =
+    \underbrace{
+    \frac{1}{M}\begin{bmatrix}\sin\theta \\ -\cos\theta\end{bmatrix} v_1
+    +
+    \frac{\ell}{6z}\begin{bmatrix}\cos\theta \\ \sin\theta\end{bmatrix} v_2
+    }_{\text{linear in } v}
+    +\; \Psi(\theta,\dot{\theta},z,\dot{z})
+    $$
+
+    where $\Psi$ collects all state-dependent terms (independent of $v$).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Exact Linearization
 
     Show that with yet another auxiliary system with input $u=(u_1, u_2)$ and output $v$ fed into the previous one, we can achieve the dynamics
